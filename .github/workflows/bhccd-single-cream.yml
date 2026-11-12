@@ -1,0 +1,29 @@
+name: BHCCD single cream (safe dry-run)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,17,27,37,47,57 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: keycrm-bhccd-tagger
+  cancel-in-progress: false
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Inspect CRM orders and optionally tag
+        if: ${{ vars.AUTOMATION_ENABLED == 'true' }}
+        env:
+          KEYCRM_API_KEY: ${{ secrets.KEYCRM_API_KEY }}
+          AUTOMATION_ENABLED: ${{ vars.AUTOMATION_ENABLED }}
+          DRY_RUN: ${{ vars.DRY_RUN }}
+          ENABLE_TAG_WRITES: ${{ vars.ENABLE_TAG_WRITES }}
+        run: python -m src.tag_bhccd
