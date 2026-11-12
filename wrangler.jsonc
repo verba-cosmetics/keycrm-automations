@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "verba-keycrm-automation",
+  "main": "src/direct_np_worker.js",
+  "compatibility_date": "2026-11-12",
+  "workers_dev": true,
+  "observability": {
+    "enabled": false
+  }
+}
