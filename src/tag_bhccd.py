@@ -11,6 +11,7 @@ SKU = "BHCCD"
 STATUS_NAME = "ПОВНА ОПЛАТА"
 DELIVERY_NAME = "Нова Пошта Кальчук"
 TAG_NAME = "BHCCD_1PC"
+MAX_MATCHES = 3  # Hard upper bound for a single workflow execution.
 
 
 def records(payload):
@@ -134,6 +135,9 @@ def run():
         if not dry_run and write_allowed:
             client.call(f"/order/{int(order_id)}/tag/{tag_id}", method="POST")
             print(f"Tag added to order ID: {order_id}")
+        if candidates >= MAX_MATCHES:
+            print("Reached the hard limit of 3 matching orders; stopping.")
+            break
     print(f"Scanned {len(orders)} of first page; eligible={candidates}; dry_run={dry_run}; writes_enabled={write_allowed}")
 
 
