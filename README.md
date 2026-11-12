@@ -2,7 +2,7 @@
 
 ## BHCCD pilot: one cream / full payment / Nova Poshta
 
-The first rule detects orders containing **exactly one** product (SKU `BHCCD`, quantity 1), with status **ПОВНА ОПЛАТА**, service **Нова Пошта Кальчук**, no existing TTN, and no `BHCCD_1PC` tag. It may add **only** that tag; other tags are untouched. A GitHub Actions workflow checks up to **20 orders on the first page** every 10 minutes.
+The first rule detects orders containing **exactly one** product (SKU `BHCCD`, quantity 1), with status **ПОВНА ОПЛАТА**, service **Нова Пошта Кальчук**, no existing TTN, and no `BHCCD_1PC` tag. It may add **only** that tag; other tags are untouched. A **manual-only**, one-time GitHub Actions workflow scans up to **20 orders on the first page** and stops at **3 matching orders**. It has **no schedule** and disables its own GitHub workflow at the end (including on failure, if the final cleanup step runs).
 
 ### Safe default
 
@@ -15,7 +15,7 @@ GitHub repository Settings → Secrets and variables → Actions:
 
 Secret: `KEYCRM_API_KEY` (never commit an API key; existing repo secrets do not transfer automatically).
 
-Variables for initial trial: `AUTOMATION_ENABLED=true`, `DRY_RUN=true`, `ENABLE_TAG_WRITES=false`. Trigger a manual `workflow_dispatch`, inspect logs, and validate the field shapes before considering write mode. **If the key is absent, the run will fail without changing CRM.**
+Variables for initial trial: `AUTOMATION_ENABLED=true`, `DRY_RUN=true`, `ENABLE_TAG_WRITES=false`. Trigger **one** manual `workflow_dispatch` in dry-run, inspect logs, and validate the field shapes before considering write mode. This one-time workflow disables itself after execution; re-enabling for a later run requires an explicit GitHub action. **If the key is absent, the run will fail without changing CRM.**
 
 The script resolves the IDs of the status, delivery service, and tag by their exact names through the API. Create `BHCCD_1PC` in keyCRM first; if names are missing/ambiguous, script stops rather than guessing.
 
@@ -32,7 +32,7 @@ keyCRM's built-in automatic shipment supports Nova Poshta **branch delivery**. T
 
 ### Known limitations
 
-Pilot only: first page / 20 orders; no full pagination. Actual keyCRM payload fields for `products`, `tags`, and `shipping.tracking_code` require verification from a real, **redacted** sample before enabling writes. If required fields are absent, eligibility fails closed. No buyer details are logged.
+Pilot only: at most 3 matching orders in a manual run; scans the first page / 20 orders, no full pagination. There is no persistent 3-order ledger across manual re-enables; do not re-enable in write mode without review. Actual keyCRM payload fields for `products`, `tags`, and `shipping.tracking_code` require verification from a real, **redacted** sample before enabling writes. If required fields are absent, eligibility fails closed. No buyer details are logged.
 
 Tests: `python -m unittest discover -s tests -v`.
 
