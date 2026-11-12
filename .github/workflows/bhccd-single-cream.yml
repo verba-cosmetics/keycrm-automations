@@ -1,10 +1,9 @@
 name: BHCCD single cream (safe dry-run)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '7,17,27,37,47,57 * * * *'
 permissions:
   contents: read
+  actions: write
 concurrency:
   group: keycrm-bhccd-tagger
   cancel-in-progress: false
@@ -27,3 +26,9 @@ jobs:
           DRY_RUN: ${{ vars.DRY_RUN }}
           ENABLE_TAG_WRITES: ${{ vars.ENABLE_TAG_WRITES }}
         run: python -m src.tag_bhccd
+      - name: Disable this workflow after this one-time run
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/bhccd-single-cream.yml/disable"
